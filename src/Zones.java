@@ -11,8 +11,52 @@ public class Zones {
      * The zones are numbered in the order in which the second pass finds them: a topological order of the zone graph.
      */
     public static int[] kosaraju(Input.Slides s) {
-        // TODO
-        return new int[s.n()];
+        int n = s.n();
+        int[][] out = Graphs.slidesFrom(s), in = Graphs.slidesInto(s);
+
+        // pass 1: DFS on the slides, cells written in the order of finishing
+        int[] order = new int[n];
+        int finished = 0;
+        boolean[] seen = new boolean[n];
+        int[] pos = new int[n];   // how many slides of the cell are already looked at
+        int[] stack = new int[n];
+        for (int root = 0; root < n; root++) {
+            if (seen[root]) continue;
+            int top = 0;
+            stack[top++] = root;
+            seen[root] = true;
+            while (top > 0) {
+                int u = stack[top - 1];
+                if (pos[u] < out[u].length) {
+                    int v = s.to()[out[u][pos[u]++]];
+                    if (!seen[v]) { seen[v] = true; stack[top++] = v; }
+                } else {
+                    order[finished++] = u;
+                    top--;
+                }
+            }
+        }
+
+        // pass 2: from the last finished cell to the first, DFS on the reversed slides
+        int[] zoneOf = new int[n];
+        Arrays.fill(zoneOf, -1);
+        int zones = 0;
+        for (int i = n - 1; i >= 0; i--) {
+            int root = order[i];
+            if (zoneOf[root] != -1) continue;
+            int top = 0;
+            stack[top++] = root;
+            zoneOf[root] = zones;
+            while (top > 0) {
+                int u = stack[--top];
+                for (int slide : in[u]) {
+                    int v = s.from()[slide];
+                    if (zoneOf[v] == -1) { zoneOf[v] = zones; stack[top++] = v; }
+                }
+            }
+            zones++;
+        }
+        return zoneOf;
     }
 
     /**

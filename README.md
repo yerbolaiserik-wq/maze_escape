@@ -1,15 +1,16 @@
 # Assignment 3. Maze Escape
 
-Student ID: 254319
-Name:
-Group:
+- Student ID: 254319
+- Name: Yerbol Aisyerik
+- Group: SE-2536
+
 Maze size (rows x columns): 8 x 9
 
-This file is the report. Fill it in as you go. How to start: `START_HERE.md`. The task: `docs/Assignment3.pdf`.
+This file is the report. How to start: `START_HERE.md`. The task: `docs/Assignment3.pdf`.
 
 ## Program output
 
-The 13 lines your program prints on your data (`java -cp out Main`):
+The 13 lines my program prints on my data (`java -cp out Main`):
 
     Broken: 71
     Kept: 56
@@ -31,37 +32,33 @@ My maze:
 
 ## Questions
 
-Answer in your own words, two or three sentences each.
-
 Mission 0. What do find and union do, and what makes them fast in your code?
 
-find returns the root of the set of a cell by following parent links; union finds both roots and hangs the smaller tree under the larger one, returning false if the roots are equal. Union by size keeps trees shallow (depth at most log n) and path compression in find re-points every visited cell directly to the root, so together the amortized cost is almost constant (inverse Ackermann).
+`find` follows the parent links from a cell until it reaches the root, and the root is the name of the group. `union` finds the two roots. If they are the same, it returns false. If not, it puts the smaller tree under the bigger tree and returns true. Two ideas make it fast. Union by size keeps the trees low. Path compression connects every cell on the way straight to the root, so the next `find` is very short. Together, one operation takes almost constant time.
 
 Mission 1. Why is Broken always R*C - 1, and Kept always (R-1)*(C-1)?
 
-The maze grid is connected, so the walls we break (the ones whose union succeeds) form a spanning tree of the R*C cells. Each successful union merges two sets and reduces the count by one, from R*C sets down to 1, so exactly R*C - 1 unions succeed (71 for my 8 x 9 maze). The grid has R*(C-1) + (R-1)*C = 2RC - R - C walls, and (2RC - R - C) - (RC - 1) = (R-1)*(C-1) stay (127 - 71 = 56 = 7 * 8 for me).
+At the start every cell is its own group, so there are R*C groups. Every broken wall joins two groups into one, so the number of groups goes down by one. At the end all cells are in one group, so exactly R*C - 1 walls are broken. For my 8 x 9 maze this is 72 - 1 = 71. The grid has R*(C-1) + (R-1)*C walls in total. If I take away the R*C - 1 broken walls, (R-1)*(C-1) walls are left. For me this is 127 - 71 = 56 = 7 * 8.
 
 Mission 2. My MST cost from Kruskal and from Prim, and why they are equal:
 
-Kruskal and Prim both give 21802 on my maze. All wall costs are different, so the minimum spanning tree is unique; Kruskal (cheapest wall that joins two components) and Prim (cheapest wall leaving the grown tree) both rely on the cut property and therefore build that same tree, so the costs are equal.
+Both Kruskal and Prim give 21802 on my maze. All wall costs are different, so there is only one cheapest maze (one minimum spanning tree). Kruskal always takes the cheapest wall that joins two different groups. Prim always takes the cheapest wall that goes out of the tree it is growing. Both rules are safe because of the cut property, so both algorithms build the same tree and get the same cost.
 
 Mission 3. Why is there exactly one path between two cells? How did you avoid a stack overflow on a huge maze?
 
-The open passages form a spanning tree: connected, so a path exists, and without cycles, so two different paths would create a cycle. I wrote DFS with an explicit int[] stack and a per-cell counter of the next direction to try, instead of recursion, so the depth of the maze does not use the call stack.
+The broken walls make a tree. A tree is connected, so there is a path between any two cells. A tree has no cycles. If there were two different paths, together they would make a cycle, so there is only one path. To avoid a stack overflow, I did not use recursion. I wrote the DFS with my own `int[]` stack. For every cell I remember the next direction to try (up, right, down, left), so the program works like recursion but does not use the Java call stack.
 
 Mission 4. Why does the second pass of Kosaraju go on the reversed graph? Why do the slides have no cycle exactly when Zones equals the number of cells?
 
-The cell finished last in pass 1 lies in a source zone. A DFS from it on the original slides could leak into later zones, but on the reversed slides it can only reach cells that can reach it, which is exactly its own zone; removing it and repeating gives the zones one by one. A zone with more than one cell contains a cycle, and a cycle forces its cells into one zone, so no cycle means every zone has one cell, i.e. Zones = n. In my data Zones = 72 = number of cells, so my slides are a DAG (Is DAG: 1).
+The cell that finishes last in the first pass is in a "source" zone, which means no other zone has slides into it. If I start a DFS from it on the normal slides, it can go out into other zones. On the reversed slides, it can only reach cells that can come back to it, and these are exactly the cells of its own zone. Then I take the next cell and repeat, so I get the zones one by one. A cycle always puts two or more cells in the same zone. So if there is no cycle, every cell is a zone of its own and Zones equals the number of cells. In my data Zones = 72, which is the number of cells, so my slides have no cycle (Is DAG: 1).
 
 Mission 5. Why is it enough to go through the zones in the order of their numbers? What does this pass cost?
 
-Zone numbers are a topological order: every slide between zones goes from a smaller to a larger number. When I reach zone z, all slides entering it come from smaller zones that are already final, so its distance and chain length are final too and one relaxation per slide is enough, no priority queue. The pass costs O(n + m) (plus the counting sort of slides by zone).
+The zone numbers from Kosaraju are a topological order. This means every slide between two zones goes from a smaller number to a bigger number. So when I come to a zone, all slides into it come from zones that I have already finished. Its best cost and its longest chain cannot change any more, so I need to look at each slide only once and I do not need a priority queue. The pass costs O(n + m).
 
 ## AI use
 
-The syllabus requires you to say which AI tools you used and for what. Write the tool (ChatGPT, Copilot, other) and what you asked it: explain an idea, find an error, review code. Write "none" if you did not use any. If you took code or text from a book or a website, give the source here.
-
-Claude : I used it to understand the assignment requirements and help to comprehend the code of Missions 0-5 (DisjointSet, Maze, Escape, Zones, extra DSU tests). I ran tools/Check.java and Bench myself and I must be able to explain every line.I had dive into some websites and Youtube videos about algorithms.
+Claude: I used it to understand the requirements of the assignment and to help me understand the code of Missions 0-5 (DisjointSet, Maze, Escape, Zones and the extra DSU tests). I ran `tools/Check.java` and `Bench` myself, and I must be able to explain every line. I also read some websites and watched YouTube videos about these algorithms.
 
 ## Timing (Mission 7)
 
@@ -73,21 +70,21 @@ Milliseconds, 5 runs each, from `java -cp out Bench`.
 | 300 x 300 | 51 | 196 |
 | 1000 x 1000 | 704 | 3167 |
 
-What do the numbers say about how the time grows? Two or three sentences.
+What do the numbers say about how the time grows?
 
-The maze has 9 times more cells from 100x100 to 300x300 and about 11 times more from 300x300 to 1000x1000, and the times grow by about that factor or a bit more (Kruskal 17 to 51 to 704), which fits n log n plus cache effects. Prim is slower than Kruskal and grows faster because of the priority queue with many small objects and random memory access, while Kruskal sorts a flat long array.
+From 100 x 100 to 300 x 300 the maze has 9 times more cells, and from 300 x 300 to 1000 x 1000 it has about 11 times more. The time grows by about the same amount or a little more (Kruskal: 17, 51, 704 ms), which matches n log n. Prim is slower than Kruskal and grows faster, because its priority queue creates many small objects and jumps around in memory. Kruskal only sorts one simple array of numbers.
 
 ## Complexity
 
-n is the number of cells, m the number of walls (or slides). Fill in every algorithm you wrote.
+n is the number of cells, m is the number of walls (or slides).
 
 | algorithm | time | space | assumptions |
 |---|---|---|---|
 | DSU find and union | O(alpha(n)) amortized | O(n) | union by size and path compression |
-| Kruskal | O(m log m) | O(n + m) | sorting dominates; m is about 2n |
-| Prim | O(m log m) | O(n + m) | binary heap with lazy deletion |
-| DFS | O(n) | O(n) | maze is a tree, so m = n - 1; explicit stack |
-| Kosaraju | O(n + m) | O(n + m) | two DFS passes, adjacency lists, iterative |
+| Kruskal | O(m log m) | O(n + m) | sorting takes most of the time; m is about 2n |
+| Prim | O(m log m) | O(n + m) | binary heap, old entries are skipped |
+| DFS | O(n) | O(n) | the maze is a tree, so m = n - 1; own stack |
+| Kosaraju | O(n + m) | O(n + m) | two DFS passes with own stacks |
 | Route in the zone graph | O(n + m) | O(n + m) | zones in topological order, no heap |
 
 ## Before you submit

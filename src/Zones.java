@@ -66,7 +66,32 @@ public class Zones {
      * [1] the cost of the cheapest route from the zone of cell 0 to the zone of the last cell.
      */
     public static long[] routes(Input.Slides s, int[] zoneOf, int zoneCount) {
-        // TODO
-        return new long[]{0, 0};
+        int n = s.n(), m = s.count();
+        // slides grouped by the zone they leave (counting sort)
+        int[] first = new int[zoneCount + 1];
+        for (int i = 0; i < m; i++) first[zoneOf[s.from()[i]] + 1]++;
+        for (int z = 0; z < zoneCount; z++) first[z + 1] += first[z];
+        int[] fill = Arrays.copyOf(first, zoneCount);
+        int[] byZone = new int[m];
+        for (int i = 0; i < m; i++) byZone[fill[zoneOf[s.from()[i]]]++] = i;
+
+        long inf = Long.MAX_VALUE / 4;
+        long[] chain = new long[zoneCount];
+        long[] dist = new long[zoneCount];
+        Arrays.fill(chain, 1);
+        Arrays.fill(dist, inf);
+        dist[zoneOf[0]] = 0;
+        long stages = 1;
+        for (int z = 0; z < zoneCount; z++) {
+            stages = Math.max(stages, chain[z]);
+            for (int j = first[z]; j < first[z + 1]; j++) {
+                int i = byZone[j];
+                int y = zoneOf[s.to()[i]];
+                if (y == z) continue;   // slide inside a zone
+                chain[y] = Math.max(chain[y], chain[z] + 1);
+                if (dist[z] < inf) dist[y] = Math.min(dist[y], dist[z] + s.time()[i]);
+            }
+        }
+        return new long[]{stages, dist[zoneOf[n - 1]]};
     }
 }

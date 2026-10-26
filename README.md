@@ -86,11 +86,3 @@ n is the number of cells, m is the number of walls (or slides).
 | DFS | O(n) | O(n) | the maze is a tree, so m = n - 1; own stack |
 | Kosaraju | O(n + m) | O(n + m) | two DFS passes with own stacks |
 | Route in the zone graph | O(n + m) | O(n + m) | zones in topological order, no heap |
-
-## Before you submit
-
-- data/walls.txt, data/slides.txt and output/maze.png are in the repository.
-- `java tools/Check.java` shows all examples right.
-- This README is filled in, the program output and the section AI use included.
-- The work is pushed to main (at least one commit per mission) and the repository is public.
-- The link is attached in Moodle.
